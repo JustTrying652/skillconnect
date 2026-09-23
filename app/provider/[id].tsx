@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, Pressable, StyleSheet, Linking } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { Provider } from '../../types';
+import GradientButton from '../../components/GradientButton';
+import { colors, radius, spacing } from '../../constants/theme';
 
 export default function ProviderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -14,9 +17,7 @@ export default function ProviderDetail() {
     async function load() {
       if (!id) return;
       const snap = await getDoc(doc(db, 'providers', id));
-      if (snap.exists()) {
-        setProvider({ id: snap.id, ...snap.data() } as Provider);
-      }
+      if (snap.exists()) setProvider({ id: snap.id, ...snap.data() } as Provider);
       setLoading(false);
     }
     load();
@@ -25,7 +26,7 @@ export default function ProviderDetail() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -33,7 +34,7 @@ export default function ProviderDetail() {
   if (!provider) {
     return (
       <View style={styles.center}>
-        <Text>Provider not found.</Text>
+        <Text style={{ color: colors.textMuted }}>Provider not found.</Text>
       </View>
     );
   }
@@ -43,13 +44,24 @@ export default function ProviderDetail() {
       <Stack.Screen options={{ title: provider.name, headerBackTitle: 'Back' }} />
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <Image
-          source={{ uri: provider.photoUrl || 'https://placehold.co/300x300?text=' + provider.name[0] }}
+          source={{ uri: provider.photoUrl || 'https://placehold.co/300x300/F2F2F7/8A8A9E?text=' + provider.name[0] }}
           style={styles.image}
         />
         <Text style={styles.name}>{provider.name}</Text>
-        <Text style={styles.category}>{provider.category}</Text>
-        {provider.rating ? <Text style={styles.rating}>⭐ {provider.rating.toFixed(1)}</Text> : null}
-        <Text style={styles.location}>📍 {provider.location}</Text>
+        <Text style={styles.category}>{provider.category.charAt(0).toUpperCase() + provider.category.slice(1)}</Text>
+
+        <View style={styles.metaRow}>
+          {provider.rating ? (
+            <View style={styles.metaItem}>
+              <Ionicons name="star" size={14} color="#F5A623" />
+              <Text style={styles.metaText}>{provider.rating.toFixed(1)}</Text>
+            </View>
+          ) : null}
+          <View style={styles.metaItem}>
+            <Ionicons name="location-outline" size={14} color={colors.textMuted} />
+            <Text style={styles.metaText}>{provider.location}</Text>
+          </View>
+        </View>
 
         <Text style={styles.sectionTitle}>About</Text>
         <Text style={styles.bio}>{provider.bio}</Text>
@@ -62,34 +74,31 @@ export default function ProviderDetail() {
           </View>
         ))}
 
-        <Pressable style={styles.connectButton} onPress={() => connectWithProvider(provider)}>
-          <Text style={styles.connectButtonText}>Connect</Text>
-        </Pressable>
+        <View style={{ marginTop: spacing.xl }}>
+          <GradientButton label="Connect" onPress={() => connectWithProvider(provider)} />
+        </View>
       </ScrollView>
     </>
   );
 }
 
 function connectWithProvider(provider: Provider) {
-  // Day 4 will replace this with a real in-app booking/request flow.
-  // For now, a simple mailto/WhatsApp-style fallback keeps this tappable and demoable.
   Linking.openURL(`https://wa.me/?text=${encodeURIComponent(`Hi ${provider.name}, I found you on SkillConnect and I'm interested in your services.`)}`);
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  content: { padding: 20, paddingBottom: 60 },
-  image: { width: 120, height: 120, borderRadius: 60, alignSelf: 'center', backgroundColor: '#eee' },
-  name: { fontSize: 22, fontWeight: '700', textAlign: 'center', marginTop: 16 },
-  category: { fontSize: 14, color: '#2563eb', fontWeight: '600', textAlign: 'center', textTransform: 'capitalize', marginTop: 4 },
-  rating: { textAlign: 'center', marginTop: 6 },
-  location: { textAlign: 'center', color: '#666', marginTop: 4 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 24, marginBottom: 8 },
-  bio: { color: '#444', lineHeight: 20 },
-  serviceRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  serviceName: { fontSize: 15 },
-  servicePrice: { fontSize: 15, fontWeight: '600', color: '#2563eb' },
-  connectButton: { backgroundColor: '#2563eb', borderRadius: 10, padding: 16, alignItems: 'center', marginTop: 32 },
-  connectButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  container: { flex: 1, backgroundColor: colors.background },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
+  content: { padding: spacing.lg, paddingBottom: 60 },
+  image: { width: 120, height: 120, borderRadius: radius.lg, alignSelf: 'center', backgroundColor: colors.inputBg },
+  name: { fontSize: 22, fontWeight: '700', color: colors.textDark, textAlign: 'center', marginTop: spacing.md },
+  category: { fontSize: 14, color: colors.primary, fontWeight: '600', textAlign: 'center', marginTop: 4 },
+  metaRow: { flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: spacing.sm },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaText: { color: colors.textMuted, fontSize: 13, fontWeight: '600' },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.textDark, marginTop: spacing.xl, marginBottom: spacing.sm },
+  bio: { color: colors.textMuted, lineHeight: 20, fontSize: 14 },
+  serviceRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+  serviceName: { fontSize: 15, color: colors.textDark },
+  servicePrice: { fontSize: 15, fontWeight: '700', color: colors.primary },
 });
