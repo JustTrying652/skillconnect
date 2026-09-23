@@ -1,4 +1,4 @@
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 
@@ -14,7 +14,14 @@ function RootNav() {
     else if (user && inAuthGroup) router.replace('/');
   }, [user, loading, segments]);
 
-  return <Slot />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="provider/[id]" options={{ headerShown: true, headerBackTitle: 'Back' }} />
+      <Stack.Screen name="category/[cat]" options={{ headerShown: true, headerBackTitle: 'Back' }} />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {
