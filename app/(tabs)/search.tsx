@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from 'react';
-import { View, Text, TextInput, FlatList, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { View, Text, TextInput, FlatList, ActivityIndicator, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { getProviders } from '../../services/providers';
 import { Provider, Category } from '../../types';
@@ -12,33 +12,34 @@ const CATEGORIES: (Category | 'all')[] = ['all', 'barber', 'hairdresser', 'tailo
 export default function Search() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const data = await getProviders();
-        setProviders(data);
-      } catch (e) {
-        console.error('Failed to load providers', e);
-      } finally {
-        setLoading(false);
-      }
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const data = await getProviders();
+      setProviders(data);
+    } catch (e) {
+      console.error('Failed to load providers', e);
+      setError(true);
+    } finally {
+      setLoading(false);
     }
-    load();
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const filtered = useMemo(() => {
     let result = providers;
-    if (activeCategory !== 'all') {
-      result = result.filter((p) => p.category === activeCategory);
-    }
+    if (activeCategory !== 'all') result = result.filter((p) => p.category === activeCategory);
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      result = result.filter(
-        (p) => p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q)
-      );
+      result = result.filter((p) => p.name.toLowerCase().includes(q) || p.location.toLowerCase().includes(q));
     }
     return result;
   }, [providers, activeCategory, query]);
@@ -60,17 +61,20 @@ export default function Search() {
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow} contentContainerStyle={{ paddingRight: spacing.md }}>
         {CATEGORIES.map((cat) => (
-          <CategoryChip
-            key={cat}
-            label={cat}
-            active={activeCategory === cat}
-            onPress={() => setActiveCategory(cat)}
-          />
+          <CategoryChip key={cat} label={cat} active={activeCategory === cat} onPress={() => setActiveCategory(cat)} />
         ))}
       </ScrollView>
 
       {loading ? (
         <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+      ) : error ? (
+        <View style={styles.errorBox}>
+          <Ionicons name="cloud-offline-outline" size={32} color={colors.textMuted} />
+          <Text style={styles.errorText}>Couldn't load providers. Check your connection.</Text>
+          <Pressable style={styles.retryButton} onPress={load}>
+            <Text style={styles.retryText}>Try Again</Text>
+          </Pressable>
+        </View>
       ) : (
         <FlatList
           data={filtered}
@@ -92,4 +96,8 @@ const styles = StyleSheet.create({
   chipRow: { marginBottom: spacing.md, maxHeight: 40 },
   list: { paddingBottom: 24 },
   empty: { textAlign: 'center', color: colors.textMuted, marginTop: 40 },
+  errorBox: { alignItems: 'center', marginTop: 60, gap: 10 },
+  errorText: { color: colors.textMuted, fontSize: 14, textAlign: 'center', paddingHorizontal: 30 },
+  retryButton: { marginTop: 8, paddingHorizontal: 20, paddingVertical: 10, borderRadius: radius.md, backgroundColor: colors.primary },
+  retryText: { color: '#fff', fontWeight: '600', fontSize: 13 },
 });
