@@ -7,11 +7,15 @@ import { db } from '../../services/firebase';
 import { Provider } from '../../types';
 import GradientButton from '../../components/GradientButton';
 import { colors, radius, spacing } from '../../constants/theme';
+import { useAuth } from '../../context/AuthContext';
+import { logConnection } from '../../services/providers';
 
 export default function ProviderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [provider, setProvider] = useState<Provider | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+
 
   useEffect(() => {
     async function load() {
@@ -75,14 +79,22 @@ export default function ProviderDetail() {
         ))}
 
         <View style={{ marginTop: spacing.xl }}>
-          <GradientButton label="Connect" onPress={() => connectWithProvider(provider)} />
+          <GradientButton label="Connect" onPress={() => connectWithProvider(provider, user?.uid, user?.displayName || undefined)} />
         </View>
       </ScrollView>
     </>
   );
 }
 
-function connectWithProvider(provider: Provider) {
+function connectWithProvider(provider: Provider, customerId?: string, customerName?: string) {
+  if (customerId) {
+    logConnection({
+      providerId: provider.id,
+      providerName: provider.name,
+      customerId,
+      customerName: customerName || 'Anonymous',
+    }).catch((e) => console.error('Failed to log connection', e));
+  }
   Linking.openURL(`https://wa.me/?text=${encodeURIComponent(`Hi ${provider.name}, I found you on SkillConnect and I'm interested in your services.`)}`);
 }
 
