@@ -18,3 +18,12 @@ export interface UserProfile {
   email: string;
   role: 'customer' | 'provider';
 }
+
+export interface Connection {
+  id: string;
+  providerId: string;
+  providerName: string;
+  customerId: string;
+  customerName: string;
+  createdAt: number;
+}
