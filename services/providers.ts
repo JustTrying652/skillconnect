@@ -1,6 +1,6 @@
 import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
 import { db } from './firebase';
-import { Provider, Category } from '../types';
+import { Provider, Category, Connection } from '../types';
 
 export async function getProviders(): Promise<Provider[]> {
   const snap = await getDocs(collection(db, 'providers'));
@@ -16,4 +16,11 @@ export async function getProvidersByCategory(category: Category): Promise<Provid
 export async function createProvider(data: Omit<Provider, 'id'>): Promise<string> {
   const ref = await addDoc(collection(db, 'providers'), data);
   return ref.id;
+}
+
+export async function logConnection(data: Omit<Connection, 'id' | 'createdAt'>) {
+  await addDoc(collection(db, 'connections'), {
+    ...data,
+    createdAt: Date.now(),
+  });
 }
