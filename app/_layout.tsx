@@ -46,6 +46,7 @@ function RootNav() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="provider/[id]" options={{ headerShown: true, headerBackTitle: 'Back' }} />
       <Stack.Screen name="category/[cat]" options={{ headerShown: true, headerBackTitle: 'Back' }} />
+      <Stack.Screen name="edit-profile" options={{ headerShown: true, headerBackTitle: 'Back' }} />
     </Stack>
   );
 }

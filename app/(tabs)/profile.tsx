@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { View, Text, Image, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { logout } from '../../services/auth';
@@ -15,6 +16,13 @@ const MENU_ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
 
 export default function Profile() {
   const { user } = useAuth();
+  const router = useRouter();
+
+  function handleMenuPress(label: string) {
+    if (label === 'Edit Profile') {
+      router.push('/edit-profile');
+    }
+  }
 
   function handleLogout() {
     Alert.alert('Log out', 'Are you sure you want to log out?', [
@@ -39,6 +47,7 @@ export default function Profile() {
           <Pressable
             key={item.label}
             style={[styles.menuItem, i === MENU_ITEMS.length - 1 && { borderBottomWidth: 0 }]}
+            onPress={() => handleMenuPress(item.label)}
           >
             <View style={styles.menuIconWrap}>
               <Ionicons name={item.icon} size={18} color={colors.primary} />
