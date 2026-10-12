@@ -9,6 +9,8 @@ export interface Provider {
   phone?: string;
   photoUrl?: string;
   rating?: number;
+  ratingSum?: number;
+  reviewCount?: number;
   services: { name: string; price: number }[];
   createdBy: string; // uid
 }
