@@ -28,3 +28,13 @@ export interface Connection {
   customerName: string;
   createdAt: number;
 }
+
+export interface Review {
+  id: string;
+  providerId: string;
+  customerId: string;
+  customerName: string;
+  rating: number; // 1-5
+  comment: string;
+  createdAt: number;
+}
