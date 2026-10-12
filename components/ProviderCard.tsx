@@ -8,6 +8,7 @@ import { getRating } from '../utils/rating';
 
 export default function ProviderCard({ provider }: { provider: Provider }) {
   const router = useRouter();
+  const rating = getRating(provider);
 
   return (
     <Pressable style={styles.card} onPress={() => router.push(`/provider/${provider.id}`)}>
