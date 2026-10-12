@@ -13,7 +13,8 @@ In the informal economy, skilled service providers are usually found through wor
 - Client / Service Provider role selection at signup
 - Home screen with category browsing
 - Search by name or location, with live category filtering
-- Provider profiles with services, pricing, location and photo
+- Provider profiles with services, pricing, location, photo and customer reviews
+- Customers can leave a 1-5 star rating and comment, one review per provider; ratings shown across the app are calculated from real reviews
 - **Connect on WhatsApp** opens a chat directly with the provider's number, with a prefilled message
 - Each connection is logged to Firestore
 - Editable user profile
@@ -145,10 +146,10 @@ app/
   category/[cat].tsx     Providers in one category
   edit-profile.tsx       Edit profile
   provider-pending.tsx   Placeholder for provider-role accounts
-components/              ProviderCard, CategoryTile, CategoryChip, GradientButton
+components/              ProviderCard, CategoryTile, CategoryChip, GradientButton, ReviewForm
 context/                 AuthContext (user and role)
-services/                firebase.ts, auth.ts, providers.ts
-utils/                   phone.ts (WhatsApp number formatting)
+services/                firebase.ts, auth.ts, providers.ts, reviews.ts
+utils/                   phone.ts (WhatsApp number formatting), rating.ts (average rating)
 constants/               theme.ts, categories
 types/                   Shared TypeScript types
 ```
@@ -157,14 +158,15 @@ types/                   Shared TypeScript types
 
 SkillConnect is an MVP. These gaps are known:
 
-- **Ratings are seeded values.** There is no review system yet, so displayed ratings are not backed by real customer reviews.
+- **Review totals are client-written.** Average ratings are computed from `ratingSum` and `reviewCount` on each provider, which any signed-in user's app can update. Making this tamper-proof needs a server-side function (Cloud Functions requires Firebase's Blaze plan).
+- **Reviews aren't tied to completed jobs.** Anyone signed in can review a provider once; there's no check that they actually used the service.
 - **Providers can't create their own listings.** Provider accounts see a "coming soon" screen; listings are currently added by an admin in Firestore.
 - **No verification or payments.** There is no provider verification, booking flow, or in-app payment.
 - **Bookings tab is a placeholder.** Connections are logged in Firestore but not yet shown to users.
 - Profile menu items other than Edit Profile are not wired up.
 - Google/Facebook sign-in buttons are visual only.
 
-Planned next: customer reviews with calculated ratings, provider self-listing, verified-provider badges, and booking and payment flows.
+Planned next: provider self-listing, verified-provider badges, reviews limited to customers who connected, and booking and payment flows.
 
 ## Credits
 
