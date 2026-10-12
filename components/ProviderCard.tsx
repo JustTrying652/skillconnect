@@ -20,12 +20,12 @@ export default function ProviderCard({ provider }: { provider: Provider }) {
         <Text style={styles.name} numberOfLines={1}>{provider.name}</Text>
         <Text style={styles.category}>{provider.category.charAt(0).toUpperCase() + provider.category.slice(1)}</Text>
         <Text style={styles.location} numberOfLines={1}>{provider.location}</Text>
-        {provider.rating ? (
-          <View style={styles.ratingRow}>
-            <Ionicons name="star" size={13} color="#F5A623" />
-            <Text style={styles.rating}>{provider.rating.toFixed(1)}</Text>
-          </View>
-        ) : null}
+        <View style={styles.ratingRow}>
+          <Ionicons name="star" size={13} color={rating ? '#F5A623' : colors.border} />
+          <Text style={styles.rating}>
+            {rating ? `${rating.toFixed(1)} (${provider.reviewCount})` : 'New'}
+          </Text>
+        </View>
       </View>
     </Pressable>
   );
