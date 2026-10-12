@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Provider } from '../types';
 import { colors, radius, spacing } from '../constants/theme';
+import { getRating } from '../utils/rating';
+
 
 export default function ProviderCard({ provider }: { provider: Provider }) {
   const router = useRouter();
