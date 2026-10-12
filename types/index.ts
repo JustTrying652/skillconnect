@@ -6,6 +6,7 @@ export interface Provider {
   category: Category;
   bio: string;
   location: string;
+  phone?: string;
   photoUrl?: string;
   rating?: number;
   services: { name: string; price: number }[];
