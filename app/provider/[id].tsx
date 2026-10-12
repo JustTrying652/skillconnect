@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, Linking } from 'react-native';
+import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, Linking, Alert } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { Provider } from '../../types';
-import GradientButton from '../../components/GradientButton';
-import { colors, radius, spacing } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
 import { logConnection } from '../../services/providers';
+import { toWhatsAppNumber } from '../../utils/phone';
+import GradientButton from '../../components/GradientButton';
+import { colors, radius, spacing } from '../../constants/theme';
 
 export default function ProviderDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
   const [provider, setProvider] = useState<Provider | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
 
   useEffect(() => {
     async function load() {
@@ -26,6 +26,32 @@ export default function ProviderDetail() {
     }
     load();
   }, [id]);
+
+  async function handleConnect() {
+    if (!provider) return;
+
+    const number = toWhatsAppNumber(provider.phone);
+    if (!number) {
+      Alert.alert('Contact unavailable', "This provider hasn't added a WhatsApp number yet.");
+      return;
+    }
+
+    if (user) {
+      logConnection({
+        providerId: provider.id,
+        providerName: provider.name,
+        customerId: user.uid,
+        customerName: user.displayName || 'Anonymous',
+      }).catch((e) => console.error('Failed to log connection', e));
+    }
+
+    const message = `Hi ${provider.name}, I found you on SkillConnect and I'm interested in your services.`;
+    try {
+      await Linking.openURL(`https://wa.me/${number}?text=${encodeURIComponent(message)}`);
+    } catch {
+      Alert.alert('Could not open WhatsApp', 'Please make sure WhatsApp is installed.');
+    }
+  }
 
   if (loading) {
     return (
@@ -79,23 +105,11 @@ export default function ProviderDetail() {
         ))}
 
         <View style={{ marginTop: spacing.xl }}>
-          <GradientButton label="Connect" onPress={() => connectWithProvider(provider, user?.uid, user?.displayName || undefined)} />
+          <GradientButton label="Connect on WhatsApp" onPress={handleConnect} />
         </View>
       </ScrollView>
     </>
   );
-}
-
-function connectWithProvider(provider: Provider, customerId?: string, customerName?: string) {
-  if (customerId) {
-    logConnection({
-      providerId: provider.id,
-      providerName: provider.name,
-      customerId,
-      customerName: customerName || 'Anonymous',
-    }).catch((e) => console.error('Failed to log connection', e));
-  }
-  Linking.openURL(`https://wa.me/?text=${encodeURIComponent(`Hi ${provider.name}, I found you on SkillConnect and I'm interested in your services.`)}`);
 }
 
 const styles = StyleSheet.create({
